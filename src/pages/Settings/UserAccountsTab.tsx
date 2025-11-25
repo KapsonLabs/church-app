@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, RefreshCw, Users } from 'lucide-react';
-import { apiService, OrganizationUser } from '@/lib/api';
+import { apiService, type OrganizationUser } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { UserPermissionsModal } from '@/components/modals/UserPermissionsModal';
@@ -65,35 +65,9 @@ export function UserAccountsTab() {
     fetchUsers();
   };
 
-  const handleViewPermissions = (userData: BranchUser) => {
+  const handleViewPermissions = (userData: OrganizationUser) => {
     setSelectedUser(userData);
     setIsPermissionsModalOpen(true);
-  };
-
-  const handleEditUser = (userId: number) => {
-    // TODO: Implement edit user functionality
-    toast({
-      title: "Edit User",
-      description: `Edit user functionality will be implemented for ID: ${userId}`,
-    });
-  };
-
-  const handleDeactivateUser = (userId: number) => {
-    // TODO: Implement deactivate user functionality
-    toast({
-      title: "Deactivate User",
-      description: `Deactivate user functionality will be implemented for ID: ${userId}`,
-      variant: "destructive",
-    });
-  };
-
-  const handleRemoveUser = (userId: number) => {
-    // TODO: Implement remove user functionality
-    toast({
-      title: "Remove User",
-      description: `Remove user functionality will be implemented for ID: ${userId}`,
-      variant: "destructive",
-    });
   };
 
 
@@ -208,9 +182,9 @@ export function UserAccountsTab() {
             setIsChangePasswordModalOpen(false);
             setPasswordChangeUser(null);
           }}
-          userId={passwordChangeUser.user}
-          userEmail={passwordChangeUser.user_email}
-          userName={passwordChangeUser.user_name}
+          userId={passwordChangeUser.id}
+          userEmail={passwordChangeUser.email}
+          userName={`${passwordChangeUser.first_name} ${passwordChangeUser.last_name}`.trim() || passwordChangeUser.username}
         />
       )}
 
@@ -222,9 +196,9 @@ export function UserAccountsTab() {
             setIsPermissionsModalOpen(false);
             setSelectedUser(null);
           }}
-          userName={selectedUser.user_name}
-          userEmail={selectedUser.user_email}
-          roleName={selectedUser.role_name}
+          userName={`${selectedUser.first_name} ${selectedUser.last_name}`.trim() || selectedUser.username}
+          userEmail={selectedUser.email}
+          roleName={selectedUser.role.name}
           permissions={selectedUser.permissions}
         />
       )}

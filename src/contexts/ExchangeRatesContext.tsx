@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useRef } from 'react';
 import { apiService, type DailyExchangeRate } from '@/lib/api';
 import { useAuth } from './AuthContext';
 
@@ -35,13 +35,13 @@ export const ExchangeRatesProvider: React.FC<ExchangeRatesProviderProps> = ({ ch
       const currentDate = date || new Date().toISOString().split('T')[0];
       
       // Check status first
-      const statusResponse = await apiService.fetchExchangeRatesStatus(user.branch.id, currentDate);
+      const statusResponse = await apiService.fetchExchangeRatesStatus(parseInt(user.branch.id, 10), currentDate);
       const available = statusResponse.status === 1;
       setExchangeRatesAvailable(available);
       
       // If rates are available, fetch them
       if (available) {
-        const ratesResponse = await apiService.fetchDailyExchangeRates(user.branch.id, currentDate);
+        const ratesResponse = await apiService.fetchDailyExchangeRates(parseInt(user.branch.id, 10), currentDate);
         setExchangeRates(ratesResponse.rates || []);
       } else {
         setExchangeRates([]);

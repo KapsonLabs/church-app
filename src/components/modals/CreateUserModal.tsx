@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { apiService, CreateUserRequest, UserRole } from '@/lib/api';
+import { apiService, type CreateUserRequest, type UserRole } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, Eye, EyeOff, UserPlus, Shield, Mail, Phone, User, Lock, Check, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -213,7 +213,7 @@ export function CreateUserModal({ isOpen, onClose, onSuccess }: CreateUserModalP
         is_primary_branch: formData.is_primary_branch,
       };
 
-      await apiService.createBranchUser(user.branch.id, userData);
+      await apiService.createBranchUser(parseInt(user.branch.id, 10), userData);
 
       toast({
         title: 'Success',

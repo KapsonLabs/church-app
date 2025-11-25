@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { apiService, PermissionModule, Permission, AddPermissionsRequest, RemovePermissionsRequest } from '@/lib/api';
+import { apiService, type PermissionModule, type Permission, type AddPermissionsRequest, type RemovePermissionsRequest } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -52,7 +52,7 @@ export default function EditRole() {
     if (!user?.branch?.id || !params.id) return;
 
     try {
-      const response = await apiService.fetchRolePermissions(user.branch.id, params.id);
+      const response = await apiService.fetchRolePermissions(parseInt(user.branch.id, 10), params.id);
       setRoleInfo(response.data.role_info);
       
       // Extract all permission IDs from the role
@@ -162,7 +162,7 @@ export default function EditRole() {
         ]
       };
 
-      await apiService.addRolePermissions(user.branch.id, params.id, requestData);
+      await apiService.addRolePermissions(parseInt(user.branch.id, 10), params.id, requestData);
 
       // Update local state
       setRolePermissions((prev) => new Set([...prev, permissionId]));
@@ -193,7 +193,7 @@ export default function EditRole() {
         permission_ids: [permissionId]
       };
 
-      await apiService.removeRolePermissions(user.branch.id, params.id, requestData);
+      await apiService.removeRolePermissions(parseInt(user.branch.id, 10), params.id, requestData);
 
       // Update local state
       setRolePermissions((prev) => {

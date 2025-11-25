@@ -144,7 +144,6 @@ export const ChangePasswordModal: React.FC<ChangePasswordModalProps> = ({
   };
 
   const passwordStrength = getPasswordStrength(formData.new_password);
-  const passwordValidationErrors = validatePassword(formData.new_password);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>

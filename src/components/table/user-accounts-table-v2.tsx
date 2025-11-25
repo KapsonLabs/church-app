@@ -1,9 +1,8 @@
 import React from 'react';
-import { Eye, Key, Shield, Mail, Phone } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Eye, Key, Shield, Mail } from 'lucide-react';
 import { type OrganizationUser } from '@/lib/api';
-import { ResponsiveTable, ColumnDefinition } from '@/components/ui/responsive-table';
-import { TableActions, TableAction } from '@/components/ui/table-actions';
+import { ResponsiveTable, type ColumnDefinition } from '@/components/ui/responsive-table';
+import { TableActions, type TableAction } from '@/components/ui/table-actions';
 import { 
   AvatarCell,
   StatusBadgeCell, 
@@ -23,7 +22,6 @@ export const UserAccountsTableV2: React.FC<UserAccountsTableV2Props> = ({
   onChangePassword,
   loading = false,
 }) => {
-  const { toast } = useToast();
 
   // Define columns
   const columns: ColumnDefinition<OrganizationUser>[] = [

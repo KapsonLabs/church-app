@@ -1,7 +1,5 @@
 import React from 'react';
 import { Eye, Edit, Shield, Calendar } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
-import { useToast } from '@/hooks/use-toast';
 import { type UserRole } from '@/lib/api';
 import { ResponsiveTable, type ColumnDefinition } from '@/components/ui/responsive-table';
 import { TableActions, type TableAction } from '@/components/ui/table-actions';
@@ -25,8 +23,6 @@ export const UserRolesTableV2: React.FC<UserRolesTableV2Props> = ({
   onEditRole,
   loading = false,
 }) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
 
   // Define columns
   const columns: ColumnDefinition<UserRole>[] = [

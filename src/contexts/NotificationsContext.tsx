@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { apiService, Notification } from '@/lib/api';
+import { apiService, type Notification } from '@/lib/api';
 import { useAuth } from './AuthContext';
+import { WebSocketService, type WebSocketMessage } from '@/lib/websocket';
 
 interface NotificationsContextType {
   notifications: Notification[];
@@ -47,19 +48,12 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, sessionId, websocketEndpoints } = useAuth();
   const previousNotificationIds = useRef<Set<number>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUnlockedRef = useRef(false);
-  const pollingIntervalRef = useRef<number | null>(null);
+  const wsServiceRef = useRef<WebSocketService | null>(null);
   const initialFetchPerformedRef = useRef(false);
-
-  const clearPolling = useCallback(() => {
-    if (pollingIntervalRef.current) {
-      window.clearInterval(pollingIntervalRef.current);
-      pollingIntervalRef.current = null;
-    }
-  }, []);
 
   // Initialize audio element on mount
   useEffect(() => {
@@ -81,7 +75,7 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
         .then(() => {
           audioRef.current?.pause();
           audioRef.current!.currentTime = 0;
-          audioRef.current!.volume = 0.5;
+          audioRef.current!.volume = 0.8;
           audioUnlockedRef.current = true;
           window.removeEventListener('click', unlockAudio);
           window.removeEventListener('keydown', unlockAudio);
@@ -167,7 +161,6 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
       
       // Check for new notifications (only after initial load)
       if (previousNotificationIds.current.size > 0) {
-        const currentIds = new Set(newNotifications.map(n => n.id));
         const newIds = newNotifications
           .filter(n => !previousNotificationIds.current.has(n.id))
           .map(n => n.id);
@@ -202,21 +195,35 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const markAsRead = useCallback(async (notificationId: number) => {
     try {
-      const response = await apiService.markNotificationAsRead(notificationId);
-      if (response.data) {
-        const normalizedResponse = normalizeNotification(response.data);
-        let shouldDecrement = false;
+      // Try WebSocket first if available
+      if (wsServiceRef.current?.isConnected()) {
+        wsServiceRef.current.markAsRead(notificationId);
+        // Optimistically update local state
         setNotifications(prev => prev.map(notif => {
-          if (notif.id === notificationId) {
-            if (!notif.is_read) {
-              shouldDecrement = true;
-            }
-            return normalizedResponse;
+          if (notif.id === notificationId && !notif.is_read) {
+            setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+            return { ...notif, is_read: true, read_at: new Date().toISOString() };
           }
           return notif;
         }));
-        if (shouldDecrement) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
+      } else {
+        // Fallback to HTTP API
+        const response = await apiService.markNotificationAsRead(notificationId);
+        if (response.data) {
+          const normalizedResponse = normalizeNotification(response.data);
+          let shouldDecrement = false;
+          setNotifications(prev => prev.map(notif => {
+            if (notif.id === notificationId) {
+              if (!notif.is_read) {
+                shouldDecrement = true;
+              }
+              return normalizedResponse;
+            }
+            return notif;
+          }));
+          if (shouldDecrement) {
+            setUnreadCount(prev => Math.max(0, prev - 1));
+          }
         }
       }
     } catch (err: any) {
@@ -251,30 +258,154 @@ export const NotificationsProvider: React.FC<{ children: React.ReactNode }> = ({
     await Promise.all([fetchNotifications(), fetchUnreadCount()]);
   }, [fetchNotifications, fetchUnreadCount]);
 
+  // Initialize WebSocket connection
   useEffect(() => {
     if (!isAuthenticated) {
-      clearPolling();
+      // Clean up WebSocket if not authenticated
+      if (wsServiceRef.current) {
+        wsServiceRef.current.disconnect();
+        wsServiceRef.current = null;
+      }
+      return;
+    }
+
+    if (!websocketEndpoints?.notifications) {
+      console.warn('WebSocket endpoint not available, falling back to HTTP polling');
+      if (!initialFetchPerformedRef.current) {
+        initialFetchPerformedRef.current = true;
+        refreshNotifications();
+      }
+      return;
+    }
+
+    if (!sessionId) {
+      console.warn('Session ID not available for WebSocket connection');
+      // Try to get from localStorage as fallback
+      const storedSessionId = localStorage.getItem('sessionid');
+      if (!storedSessionId) {
+        console.warn('No session ID found, WebSocket connection may fail');
+      }
+    }
+
+    const effectiveSessionId = sessionId || localStorage.getItem('sessionid');
+    console.log('Initializing WebSocket:', {
+      url: websocketEndpoints.notifications,
+      hasSessionId: !!effectiveSessionId,
+    });
+
+    // Create WebSocket service
+    const wsService = new WebSocketService(websocketEndpoints.notifications, effectiveSessionId);
+    wsServiceRef.current = wsService;
+
+    // Handle WebSocket messages
+    const unsubscribeMessage = wsService.onMessage((message: WebSocketMessage) => {
+      switch (message.type) {
+        case 'pong':
+          // Keep-alive response, no action needed
+          break;
+        
+        case 'unread_count':
+          if (typeof message.count === 'number') {
+            setUnreadCount(message.count);
+          }
+          break;
+        
+        case 'mark_as_read_response':
+          if (message.success && message.notification_id) {
+            setNotifications(prev => prev.map(notif => {
+              if (notif.id === message.notification_id && !notif.is_read) {
+                setUnreadCount(prevCount => Math.max(0, prevCount - 1));
+                return { ...notif, is_read: true, read_at: new Date().toISOString() };
+              }
+              return notif;
+            }));
+          }
+          break;
+        
+        case 'notification':
+          // New notification received
+          const notificationData = message.notification || message.data;
+          if (notificationData) {
+            const newNotification = normalizeNotification(notificationData);
+            setNotifications(prev => {
+              // Check if notification already exists
+              const exists = prev.some(n => n.id === newNotification.id);
+              if (exists) {
+                return prev.map(n => n.id === newNotification.id ? newNotification : n);
+              }
+              // Add new notification at the beginning
+              playNotificationSound();
+              return [newNotification, ...prev];
+            });
+            // Increment unread count if notification is unread
+            if (!newNotification.is_read) {
+              setUnreadCount(prev => prev + 1);
+            }
+          }
+          break;
+        
+        case 'error':
+          console.error('WebSocket error:', message.message);
+          setError(message.message || 'WebSocket error occurred');
+          break;
+      }
+    });
+
+    // Connect WebSocket
+    wsService.connect()
+      .then(() => {
+        console.log('WebSocket connected for notifications');
+        // Request initial unread count
+        wsService.getUnreadCount();
+        // Fetch initial notifications via HTTP
+        if (!initialFetchPerformedRef.current) {
+          initialFetchPerformedRef.current = true;
+          fetchNotifications();
+        }
+      })
+      .catch((error) => {
+        console.error('Failed to connect WebSocket:', error);
+        console.error('Error details:', {
+          url: websocketEndpoints.notifications,
+          sessionId: effectiveSessionId ? 'present' : 'missing',
+        });
+        setError('Failed to connect to notifications service');
+        // Fallback to HTTP polling if WebSocket fails
+        if (!initialFetchPerformedRef.current) {
+          initialFetchPerformedRef.current = true;
+          refreshNotifications();
+        }
+      });
+
+    // Add status change handler for debugging
+    const unsubscribeStatus = wsService.onStatusChange((status) => {
+      console.log('WebSocket status changed:', status);
+    });
+
+    // Cleanup on unmount or when dependencies change
+    return () => {
+      unsubscribeMessage();
+      unsubscribeStatus();
+      wsService.disconnect();
+      wsServiceRef.current = null;
+    };
+  }, [isAuthenticated, websocketEndpoints?.notifications, sessionId, fetchNotifications, refreshNotifications, playNotificationSound]);
+
+  // Initial fetch when authenticated (fallback if WebSocket not available)
+  useEffect(() => {
+    if (!isAuthenticated) {
       setNotifications([]);
       setUnreadCount(0);
       initialFetchPerformedRef.current = false;
       return;
     }
 
-    if (!initialFetchPerformedRef.current) {
+    // If WebSocket is not available, use HTTP polling as fallback
+    if (!websocketEndpoints?.notifications && !initialFetchPerformedRef.current) {
       initialFetchPerformedRef.current = true;
       refreshNotifications();
     }
-
-    if (!pollingIntervalRef.current) {
-      pollingIntervalRef.current = window.setInterval(() => {
-        refreshNotifications();
-      }, 15000);
-    }
-
-    return () => {
-      clearPolling();
-    };
-  }, [isAuthenticated, refreshNotifications, clearPolling]);
+  }, [isAuthenticated, websocketEndpoints, refreshNotifications]);
 
   return (
     <NotificationsContext.Provider
@@ -302,4 +433,3 @@ export const useNotifications = () => {
   }
   return context;
 };
-

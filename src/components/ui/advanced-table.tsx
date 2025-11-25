@@ -1,15 +1,14 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  VisibilityState,
-  ColumnSizingState,
-  ColumnResizeMode,
+  type VisibilityState,
+  type ColumnSizingState,
+  type ColumnResizeMode,
 } from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,

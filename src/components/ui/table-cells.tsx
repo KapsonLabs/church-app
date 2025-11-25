@@ -1,4 +1,4 @@
-import React, { type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { 
@@ -6,7 +6,6 @@ import {
   XCircle, 
   Clock, 
   AlertCircle,
-  User,
   type LucideIcon,
 } from 'lucide-react';
 

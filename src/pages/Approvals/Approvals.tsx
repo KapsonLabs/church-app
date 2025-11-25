@@ -222,7 +222,7 @@ export default function Approvals() {
       render: (approval) => (
         <StatusBadgeCell
           status={approval.status.charAt(0).toUpperCase() + approval.status.slice(1)}
-          variant={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'destructive' : 'warning'}
+          variant={approval.status === 'approved' ? 'success' : approval.status === 'rejected' ? 'error' : 'warning'}
         />
       ),
     },

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { apiService, BulkCreateTransactionSettingRequest, BranchCurrency } from '@/lib/api';
+// Note: Transaction settings APIs have been removed
+// Stub types for build compatibility
+type BulkCreateTransactionSettingRequest = any;
+type BranchCurrency = any;
 import { Loader2, Save, X } from 'lucide-react';
 
 interface EditTransactionSettingsModalProps {
@@ -87,8 +90,9 @@ export const EditTransactionSettingsModal: React.FC<EditTransactionSettingsModal
 
   const fetchCurrencies = async () => {
     try {
-      const response = await apiService.fetchBranchCurrencies(branchId);
-      setCurrencies(response);
+      // Note: fetchBranchCurrencies API has been removed
+      // const response = await apiService.fetchBranchCurrencies(branchId);
+      throw new Error('Currency management has been removed');
     } catch (error) {
       console.error('Error fetching currencies:', error);
       toast({
@@ -144,22 +148,9 @@ export const EditTransactionSettingsModal: React.FC<EditTransactionSettingsModal
         },
       ];
 
-      const response = await apiService.bulkCreateTransactionSettings(payload);
-
-      if (response.status === 200) {
-        toast({
-          title: 'Success',
-          description: response.message || 'Transaction setting saved successfully',
-        });
-        onSuccess();
-        onClose();
-      } else {
-        toast({
-          title: 'Error',
-          description: 'Failed to save transaction setting',
-          variant: 'destructive',
-        });
-      }
+      // Note: bulkCreateTransactionSettings API has been removed
+      // const response = await apiService.bulkCreateTransactionSettings(payload);
+      throw new Error('Transaction settings management has been removed');
     } catch (error: any) {
       console.error('Error saving transaction setting:', error);
       

@@ -12,6 +12,8 @@ interface AuthenticatedUser extends AuthUser {
 interface AuthContextType {
   user: AuthenticatedUser | null;
   permissions: string[];
+  sessionId: string | null;
+  websocketEndpoints: { notifications: string; messages: string } | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   updatePermissions: (newPermissions: string[] | UserPermissionModule[]) => void;
@@ -29,6 +31,8 @@ const STORAGE_KEYS = {
   PERMISSIONS: 'user_permissions',
   ACCESS_TOKEN: 'access_token',
   REFRESH_TOKEN: 'refresh_token',
+  SESSION_ID: 'sessionid',
+  WEBSOCKET_ENDPOINTS: 'websocket_endpoints',
 } as const;
 
 const normalizePermissions = (input: string[] | UserPermissionModule[] | undefined): string[] => {
@@ -91,6 +95,8 @@ const buildUserFromStorage = (
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthenticatedUser | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [websocketEndpoints, setWebsocketEndpoints] = useState<{ notifications: string; messages: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -98,6 +104,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedPermissionsRaw = localStorage.getItem(STORAGE_KEYS.PERMISSIONS);
     const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
     const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+    const storedSessionId = localStorage.getItem(STORAGE_KEYS.SESSION_ID);
+    const storedWebsocketEndpoints = localStorage.getItem(STORAGE_KEYS.WEBSOCKET_ENDPOINTS);
 
     try {
       const parsedUser: AuthUser | null = storedUserRaw ? JSON.parse(storedUserRaw) : null;
@@ -116,12 +124,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setPermissions(parsedPermissions);
         apiService.setAccessToken(builtUser.tokens.access);
       }
+
+      if (storedSessionId) {
+        setSessionId(storedSessionId);
+      }
+
+      if (storedWebsocketEndpoints) {
+        try {
+          const endpoints = JSON.parse(storedWebsocketEndpoints);
+          setWebsocketEndpoints(endpoints);
+        } catch (e) {
+          console.error('Error parsing websocket endpoints:', e);
+        }
+      }
     } catch (error) {
       console.error('Error restoring authentication state:', error);
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.PERMISSIONS);
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.SESSION_ID);
+      localStorage.removeItem(STORAGE_KEYS.WEBSOCKET_ENDPOINTS);
     } finally {
       setIsLoading(false);
     }
@@ -165,6 +188,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       apiService.setAccessToken(tokens.access);
 
+      // Store session ID if available
+      // Try localStorage first, then document.cookie as fallback
+      let sessionIdValue = localStorage.getItem(STORAGE_KEYS.SESSION_ID);
+      if (!sessionIdValue && typeof document !== 'undefined' && document.cookie) {
+        const cookieMatch = document.cookie.match(/sessionid=([^;]+)/);
+        if (cookieMatch) {
+          sessionIdValue = cookieMatch[1];
+          localStorage.setItem(STORAGE_KEYS.SESSION_ID, sessionIdValue);
+        }
+      }
+      if (sessionIdValue) {
+        setSessionId(sessionIdValue);
+      } else {
+        console.warn('Session ID not found after login');
+      }
+
+      // Store websocket endpoints if available
+      if (response.websocket_endpoints) {
+        setWebsocketEndpoints(response.websocket_endpoints);
+        localStorage.setItem(STORAGE_KEYS.WEBSOCKET_ENDPOINTS, JSON.stringify(response.websocket_endpoints));
+      }
+
       const userToStore: AuthUser = {
         ...response.user,
         full_name: fullName,
@@ -194,10 +239,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUser(null);
       setPermissions([]);
+      setSessionId(null);
+      setWebsocketEndpoints(null);
       localStorage.removeItem(STORAGE_KEYS.USER);
       localStorage.removeItem(STORAGE_KEYS.PERMISSIONS);
       localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.SESSION_ID);
+      localStorage.removeItem(STORAGE_KEYS.WEBSOCKET_ENDPOINTS);
     }
   };
 
@@ -232,6 +281,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     user,
     permissions,
+    sessionId,
+    websocketEndpoints,
     login,
     logout,
     updatePermissions,

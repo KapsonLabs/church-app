@@ -8,17 +8,15 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiService, type TicketDetails, type TicketComment } from '@/lib/api';
+import { apiService, type TicketDetails } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { 
   ArrowLeft, 
   RefreshCw, 
   Loader2, 
   Send, 
-  User, 
   Calendar,
   MessageSquare,
-  Users,
   AlertCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

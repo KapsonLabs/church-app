@@ -393,7 +393,7 @@ export const ErrorToastConfigs = {
   }),
 
   // Network errors
-  networkError: (error: any): ErrorToastData => ({
+  networkError: (_error: any): ErrorToastData => ({
     error: 'Network connection failed',
     suggestions: [
       'Check your internet connection',
@@ -410,7 +410,7 @@ export const ErrorToastConfigs = {
   }),
 
   // Permission errors
-  permissionDenied: (error: any): ErrorToastData => ({
+  permissionDenied: (_error: any): ErrorToastData => ({
     error: 'Access denied',
     suggestions: [
       'Contact your administrator for access',

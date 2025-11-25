@@ -1,5 +1,5 @@
-import React, { ReactNode } from 'react';
-import { MoreVertical, LucideIcon } from 'lucide-react';
+import React, { type ReactNode } from 'react';
+import { MoreVertical, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

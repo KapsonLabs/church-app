@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, RefreshCw, TrendingUp } from 'lucide-react';
 import { apiService, type KPI } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ResponsiveTable, ColumnDefinition } from '@/components/ui/responsive-table';
-import { StatusBadgeCell, DateCell } from '@/components/ui/table-cells';
+import { ResponsiveTable, type ColumnDefinition } from '@/components/ui/responsive-table';
+import { StatusBadgeCell } from '@/components/ui/table-cells';
 import { Badge } from '@/components/ui/badge';
 import { CreateKPIModal } from '@/components/modals/CreateKPIModal';
 

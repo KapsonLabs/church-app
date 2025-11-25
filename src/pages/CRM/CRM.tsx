@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, RefreshCw, Filter, Search, HelpCircle } from 'lucide-react';
+import { RefreshCw, Search, HelpCircle } from 'lucide-react';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useAuth } from '@/contexts/AuthContext';
 import { apiService, type Ticket } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from '@tanstack/react-router';
@@ -27,7 +26,6 @@ const CRM = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
 

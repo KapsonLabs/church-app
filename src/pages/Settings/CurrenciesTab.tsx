@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, RefreshCw, DollarSign, Globe } from 'lucide-react';
-import { apiService, BranchCurrency } from '@/lib/api';
+// Note: BranchCurrency API has been removed
+// Stub type for build compatibility
+type BranchCurrency = any;
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { CurrenciesTableV2 } from '@/components/table/currencies-table-v2';
 
 export function CurrenciesTab() {
-  const [currencies, setCurrencies] = useState<BranchCurrency[]>([]);
+  const [currencies] = useState<BranchCurrency[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -24,8 +26,9 @@ export function CurrenciesTab() {
 
     try {
       setError(null);
-      const response = await apiService.fetchBranchCurrencies(user.branch.id);
-      setCurrencies(response);
+      // Note: fetchBranchCurrencies API has been removed
+      // const response = await apiService.fetchBranchCurrencies(user.branch.id);
+      throw new Error('Currency management has been removed');
     } catch (err) {
       console.error('Error fetching currencies:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch currencies');

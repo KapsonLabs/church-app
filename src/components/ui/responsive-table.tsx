@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 // ============================================================================
@@ -86,11 +86,11 @@ export function ResponsiveTable<T = any>({
     return index;
   };
 
-  // Generate responsive hide classes
-  const getHideClasses = (hideOn?: ('sm' | 'md' | 'lg' | 'xl')[]): string => {
-    if (!hideOn || hideOn.length === 0) return '';
-    return hideOn.map(bp => `${bp}:hidden`).join(' ');
-  };
+  // Generate responsive hide classes (unused but kept for potential future use)
+  // const _getHideClasses = (hideOn?: ('sm' | 'md' | 'lg' | 'xl')[]): string => {
+  //   if (!hideOn || hideOn.length === 0) return '';
+  //   return hideOn.map(bp => `${bp}:hidden`).join(' ');
+  // };
 
   // Generate responsive show classes (inverse of hide)
   const getShowClasses = (hideOn?: ('sm' | 'md' | 'lg' | 'xl')[]): string => {

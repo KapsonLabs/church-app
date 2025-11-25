@@ -1,7 +1,7 @@
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface MobileTableProps {
@@ -14,7 +14,7 @@ interface MobileTableProps {
 
 export function MobileTable({ 
   data, 
-  columns, 
+  columns: _columns, 
   className, 
   renderMobileRow, 
   title 

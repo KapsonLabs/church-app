@@ -1,6 +1,7 @@
 // API configuration and service functions
-const API_BASE_URL = 'http://localhost:8000/api/';
-export const MEDIA_URL = 'http://localhost:8000';
+// const API_BASE_URL = 'http://localhost:8000/api/';
+const API_BASE_URL = 'https://api.resolver.iolabz.ug/api/'
+// export const MEDIA_URL = 'http://localhost:8000';
 
 // Custom error class to preserve backend error structure
 export class ApiError extends Error {
@@ -73,6 +74,10 @@ export interface AuthResponse {
     role: AuthUserRole;
     permissions: string[];
     branch: Branch;
+  };
+  websocket_endpoints?: {
+    notifications: string;
+    messages: string;
   };
 }
 
@@ -840,16 +845,50 @@ class ApiService {
   // Authentication methods
   async login(credentials: LoginRequest): Promise<AuthResponse> {
     const loginEndpoint = import.meta.env.VITE_LOGIN_ENDPOINT ?? 'accounts/auth/login/';
-    const response = await this.makeRequest<AuthResponse>(loginEndpoint, {
+    const url = `${this.baseURL}${loginEndpoint}`;
+    
+    const response = await fetch(url, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include', // Important: include cookies
       body: JSON.stringify(credentials),
     });
 
-    if (response.access) {
-      this.setAccessToken(response.access);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new ApiError(
+        errorData.message || `HTTP error! status: ${response.status}`,
+        response.status,
+        errorData.error || 'Request failed',
+        errorData.violations,
+        errorData.warnings,
+        errorData.details || errorData
+      );
     }
 
-    return response;
+    const data = await response.json();
+
+    if (data.access) {
+      this.setAccessToken(data.access);
+    }
+
+    // Extract sessionid from document.cookie
+    // Note: Set-Cookie headers are not accessible via JavaScript for security reasons
+    // The browser automatically sets cookies, so we read from document.cookie
+    if (typeof document !== 'undefined' && document.cookie) {
+      const cookieMatch = document.cookie.match(/sessionid=([^;]+)/);
+      if (cookieMatch) {
+        const sessionId = cookieMatch[1];
+        localStorage.setItem('sessionid', sessionId);
+        console.log('Session ID extracted and stored');
+      } else {
+        console.warn('Session ID not found in cookies');
+      }
+    }
+
+    return data;
   }
 
   async logout(): Promise<void> {
@@ -859,6 +898,7 @@ class ApiService {
     localStorage.removeItem('user_permissions');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('sessionid');
   }
 
   // User Roles API methods

@@ -1,9 +1,10 @@
 import React from 'react';
 import { Edit, Trash2, DollarSign, Building } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { type BranchCurrency } from '@/lib/api';
-import { ResponsiveTable, ColumnDefinition } from '@/components/ui/responsive-table';
-import { TableActions, TableAction } from '@/components/ui/table-actions';
+// Note: BranchCurrency API has been removed
+// Stub type for build compatibility
+type BranchCurrency = any;
+import { ResponsiveTable, type ColumnDefinition } from '@/components/ui/responsive-table';
+import { TableActions, type TableAction } from '@/components/ui/table-actions';
 import { 
   StatusBadgeCell, 
   MultiLineCell,
@@ -23,7 +24,6 @@ export const CurrenciesTableV2: React.FC<CurrenciesTableV2Props> = ({
   onDelete,
   loading = false,
 }) => {
-  const { toast } = useToast();
 
   // Define columns
   const columns: ColumnDefinition<BranchCurrency>[] = [

@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -138,7 +137,6 @@ export function UserPermissionsModal({
                 {(permissions as string[]).map((permission, index) => {
                   const parts = permission.split('_');
                   const action = parts[parts.length - 1] || 'read';
-                  const resource = parts.slice(0, -1).join('_');
                   
                   return (
                     <div

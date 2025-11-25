@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Plus, RefreshCw, Shield } from 'lucide-react';
-import { apiService, UserRole, UserPermissionModule } from '@/lib/api';
+import { apiService, type UserRole, type UserPermissionModule } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { UserPermissionsModal } from '@/components/modals/UserPermissionsModal';
@@ -75,7 +75,7 @@ export function UserRolesTab() {
     setIsPermissionsModalOpen(true);
 
     try {
-      const response = await apiService.fetchRolePermissions(user.branch.id, roleId);
+      const response = await apiService.fetchRolePermissions(parseInt(user.branch.id, 10), roleId);
       setRolePermissions(response.data.permissions_by_module);
     } catch (error) {
       console.error('Error fetching role permissions:', error);
@@ -101,14 +101,6 @@ export function UserRolesTab() {
     navigate({ to: `/settings/roles/${roleId}/edit` });
   };
 
-  const handleDeleteRole = (roleId: string) => {
-    // TODO: Implement delete role functionality
-    toast({
-      title: "Delete Role",
-      description: `Delete role functionality will be implemented for ID: ${roleId}`,
-      variant: "destructive",
-    });
-  };
 
 
   if (loading) {

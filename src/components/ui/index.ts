@@ -1,7 +1,7 @@
 // Re-export all UI components for easier imports
 export * from './error-toast';
 export * from './toast';
-export * from './toaster';
+// export * from './toaster'; // Duplicate export with sonner
 export * from './button';
 export * from './dialog';
 export * from './input';

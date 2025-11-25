@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, RefreshCw, Settings, Currency, Plus } from 'lucide-react';
-import { apiService, TransactionSetting } from '@/lib/api';
+// Note: TransactionSetting API has been removed
+// Stub type for build compatibility
+type TransactionSetting = any;
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { ResponsiveTable, ColumnDefinition } from '@/components/ui/responsive-table';
-import { TableActions, TableAction } from '@/components/ui/table-actions';
+import { ResponsiveTable, type ColumnDefinition } from '@/components/ui/responsive-table';
+import { TableActions, type TableAction } from '@/components/ui/table-actions';
 import { 
   StatusBadgeCell, 
   DateCell,
@@ -18,7 +20,7 @@ import { PermissionGuard, usePermission } from '@/components/auth/PermissionGuar
 import { PERMISSIONS } from '@/lib/permissions';
 
 export function TransactionSettingsTab() {
-  const [settings, setSettings] = useState<TransactionSetting[]>([]);
+  const [settings] = useState<TransactionSetting[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,8 +39,9 @@ export function TransactionSettingsTab() {
 
     try {
       setError(null);
-      const response = await apiService.fetchTransactionSettings(user.branch.id);
-      setSettings(response.data);
+      // Note: fetchTransactionSettings API has been removed
+      // const response = await apiService.fetchTransactionSettings(user.branch.id);
+      throw new Error('Transaction settings management has been removed');
     } catch (err) {
       console.error('Error fetching transaction settings:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch transaction settings');
@@ -270,7 +273,7 @@ export function TransactionSettingsTab() {
           isOpen={isModalOpen}
           onClose={handleModalClose}
           onSuccess={handleModalSuccess}
-          branchId={user.branch.id}
+          branchId={parseInt(user.branch.id, 10)}
           transactionSetting={selectedSetting || undefined}
         />
       )}
