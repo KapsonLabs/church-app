@@ -80,11 +80,16 @@ export function KPIReportDetailsModal({
   };
 
   const handleRevert = async () => {
-    // TODO: Implement revert functionality when endpoint is available
-    toast({
-      title: 'Coming Soon',
-      description: 'Revert functionality will be available soon.',
-    });
+    setIsReverting(true);
+    try {
+      // TODO: Implement revert functionality when endpoint is available
+      toast({
+        title: 'Coming Soon',
+        description: 'Revert functionality will be available soon.',
+      });
+    } finally {
+      setIsReverting(false);
+    }
   };
 
   return (

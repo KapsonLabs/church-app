@@ -327,7 +327,7 @@ export function AdvancedTable<TData>({
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b bg-table-header">
-                {headerGroup.headers.map((header, index) => {
+                {headerGroup.headers.map((header) => {
                   const isSticky = stickyColumns.includes(header.id);
                   const stickyIndex = stickyColumns.indexOf(header.id);
                   

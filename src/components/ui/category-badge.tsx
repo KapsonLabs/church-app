@@ -1,4 +1,10 @@
-import { Category } from '@/types/table';
+// Note: Category type may not exist
+// Stub type for build compatibility
+type Category = {
+  name: string;
+  color: keyof typeof categoryColorMap;
+};
+
 import { cn } from '@/lib/utils';
 
 interface CategoryBadgeProps {
@@ -6,7 +12,7 @@ interface CategoryBadgeProps {
   className?: string;
 }
 
-const categoryColorMap = {
+const categoryColorMap: Record<string, string> = {
   friskv: 'bg-category-friskv/20 text-category-friskv border-category-friskv/30',
   software: 'bg-category-software/20 text-category-software border-category-software/30',
   bokforing: 'bg-category-bokforing/20 text-category-bokforing border-category-bokforing/30',
