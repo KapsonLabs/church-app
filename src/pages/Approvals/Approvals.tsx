@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw, Search } from 'lucide-react';
 import { AuthenticatedLayout } from '@/components/layout/AuthenticatedLayout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { ResponsiveContainer } from '@/components/ui/responsive-container';
@@ -18,7 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function Approvals() {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function Approvals() {
     (searchParams?.status as 'submitted' | 'approved' | 'rejected') || 'submitted'
   );
   const [kpiFilter, setKpiFilter] = useState<string>(searchParams?.kpi_id || '');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredApprovals, setFilteredApprovals] = useState<KPIApproval[]>([]);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -65,6 +68,7 @@ export default function Approvals() {
         kpiFilter || undefined
       );
       setApprovals(response.data);
+      setFilteredApprovals(response.data);
     } catch (err) {
       console.error('Error fetching approvals:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch approvals');
@@ -118,6 +122,23 @@ export default function Approvals() {
   useEffect(() => {
     fetchApprovals();
   }, [user?.branch?.organization_id, statusFilter, kpiFilter]);
+
+  // Filter approvals by search query
+  useEffect(() => {
+    let filtered = approvals;
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(approval =>
+        approval.kpi.name.toLowerCase().includes(query) ||
+        `${approval.reported_by.first_name} ${approval.reported_by.last_name}`.toLowerCase().includes(query) ||
+        approval.reported_by.email.toLowerCase().includes(query)
+      );
+    }
+
+    setFilteredApprovals(filtered);
+  }, [searchQuery, approvals]);
 
   const handleRowClick = (approval: KPIApproval) => {
     setSelectedApproval(approval);
@@ -249,10 +270,15 @@ export default function Approvals() {
     <ProtectedRoute>
       <AuthenticatedLayout>
         <ResponsiveContainer>
-          {/* Header */}
-          <div className="space-y-4 mb-6">
+          <div className="space-y-4">
+            {/* Header */}
             <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold tracking-tight">Approvals</h1>
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Approvals</h1>
+                <p className="text-muted-foreground text-sm">
+                  Review and approve KPI reports submitted by team members.
+                </p>
+              </div>
               <div className="flex items-center space-x-2">
                 <Button
                   variant="outline"
@@ -266,74 +292,81 @@ export default function Approvals() {
                 </Button>
               </div>
             </div>
-            <p className="text-muted-foreground">
-              Review and approve KPI reports submitted by team members.
-            </p>
 
             {/* Filters */}
-            <div className="flex items-end gap-4 pt-2">
-              <div className="flex-1 max-w-xs">
-                <Label htmlFor="status-filter" className="text-xs mb-2">Status</Label>
-                <Select value={statusFilter} onValueChange={handleStatusChange}>
-                  <SelectTrigger id="status-filter">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="submitted">Submitted</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
+            <Card>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-1">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Search by KPI or reporter..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+                  <Select value={statusFilter} onValueChange={handleStatusChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select value={kpiFilter || 'all'} onValueChange={handleKpiChange}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All KPIs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All KPIs</SelectItem>
+                      {kpis.map((kpi) => (
+                        <SelectItem key={kpi.id} value={kpi.id}>
+                          {kpi.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardContent>
+            </Card>
+
+            {error ? (
+              <div className="text-center py-8">
+                <p className="text-destructive mb-4">{error}</p>
+                <Button onClick={fetchApprovals} variant="outline">
+                  Try Again
+                </Button>
               </div>
-              <div className="flex-1 max-w-xs">
-                <Label htmlFor="kpi-filter" className="text-xs mb-2">KPI</Label>
-                <Select value={kpiFilter || 'all'} onValueChange={handleKpiChange}>
-                  <SelectTrigger id="kpi-filter">
-                    <SelectValue placeholder="All KPIs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All KPIs</SelectItem>
-                    {kpis.map((kpi) => (
-                      <SelectItem key={kpi.id} value={kpi.id}>
-                        {kpi.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            ) : (
+              <ResponsiveTable
+                data={filteredApprovals}
+                columns={columns}
+                loading={refreshing}
+                emptyMessage="No pending approvals found."
+                hoverable
+                getRowKey={(approval) => approval.id}
+                onRowClick={handleRowClick}
+              />
+            )}
+
+            {isModalOpen && selectedApproval && (
+              <ApprovalDetailsModal
+                isOpen={isModalOpen}
+                onClose={() => {
+                  setIsModalOpen(false);
+                  setSelectedApproval(null);
+                }}
+                approval={selectedApproval}
+                onSuccess={handleApprovalSuccess}
+              />
+            )}
           </div>
-
-          {error ? (
-            <div className="text-center py-8">
-              <p className="text-destructive mb-4">{error}</p>
-              <Button onClick={fetchApprovals} variant="outline">
-                Try Again
-              </Button>
-            </div>
-          ) : (
-            <ResponsiveTable
-              data={approvals}
-              columns={columns}
-              loading={refreshing}
-              emptyMessage="No pending approvals found."
-              hoverable
-              getRowKey={(approval) => approval.id}
-              onRowClick={handleRowClick}
-            />
-          )}
-
-          {isModalOpen && selectedApproval && (
-            <ApprovalDetailsModal
-              isOpen={isModalOpen}
-              onClose={() => {
-                setIsModalOpen(false);
-                setSelectedApproval(null);
-              }}
-              approval={selectedApproval}
-              onSuccess={handleApprovalSuccess}
-            />
-          )}
         </ResponsiveContainer>
       </AuthenticatedLayout>
     </ProtectedRoute>

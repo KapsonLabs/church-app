@@ -19,10 +19,12 @@ export function Sidebar() {
   const canViewKPIs = user?.role?.slug === 'manager' || user?.role?.slug === 'supervisor' || 
                       user?.role?.name?.toLowerCase() === 'supervisor' || 
                       user?.role?.name?.toLowerCase() === 'manager';
+  
+  const canAccessSettings = canViewKPIs; // Settings only for supervisor and manager
 
   const mainItems = [
     {
-      name: 'CRM',
+      name: 'Tickets',
       href: '/crm',
       icon: HelpCircle,
     },
@@ -41,11 +43,11 @@ export function Sidebar() {
       href: '/approvals',
       icon: CheckCircle2,
     }] : []),
-    {
+    ...(canAccessSettings ? [{
       name: 'Settings',
       href: '/settings',
       icon: Settings,
-    },
+    }] : []),
   ];
 
   const bottomItems = [

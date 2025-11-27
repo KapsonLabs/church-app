@@ -17,6 +17,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { CreateTicketModal } from '@/components/modals/CreateTicketModal';
+import { useTicketActivitiesWebSocket } from '@/hooks/use-ticket-activities-websocket';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CRM = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -28,6 +30,40 @@ const CRM = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { sessionId } = useAuth();
+
+  // Handle new ticket from WebSocket
+  const handleTicketCreated = (newTicket: Ticket) => {
+    // Check if ticket already exists to avoid duplicates
+    const ticketExists = tickets.some(t => t.id === newTicket.id);
+    if (ticketExists) {
+      // Update existing ticket instead
+      setTickets(prev => prev.map(t => t.id === newTicket.id ? newTicket : t));
+    } else {
+      // Add new ticket to the beginning of the list
+      setTickets(prev => [newTicket, ...prev]);
+    }
+  };
+
+  // Handle ticket removal from WebSocket
+  const handleTicketRemoved = (data: { ticket: Ticket; triggered_by: { full_name: string } }) => {
+    // Remove ticket from the list
+    setTickets(prev => prev.filter(t => t.id !== data.ticket.id));
+    
+    toast({
+      title: "Ticket Removed",
+      description: `Ticket ${data.ticket.ticket_number} has been removed by ${data.triggered_by.full_name}.`,
+      variant: "default",
+    });
+  };
+
+  // Initialize WebSocket connection for ticket activities
+  useTicketActivitiesWebSocket(
+    sessionId,
+    handleTicketCreated,
+    undefined, // We don't need to handle updates on the list page
+    handleTicketRemoved
+  );
 
   const fetchTickets = async (showRefreshToast = false) => {
     try {
@@ -93,7 +129,7 @@ const CRM = () => {
     fetchTickets(true);
   };
 
-  const handleTicketCreated = () => {
+  const handleTicketCreatedFromModal = () => {
     fetchTickets(true);
   };
 
@@ -185,7 +221,7 @@ const CRM = () => {
                   <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                   <span>Refresh</span>
                 </Button>
-                <CreateTicketModal onTicketCreated={handleTicketCreated} />
+                <CreateTicketModal onTicketCreated={handleTicketCreatedFromModal} />
               </div>
             </div>
 

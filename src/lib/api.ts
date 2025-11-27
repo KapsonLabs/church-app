@@ -379,6 +379,27 @@ export interface CreateTicketResponse {
   };
 }
 
+export interface UpdateTicketRequest {
+  title: string;
+  description: string;
+  category: string;
+  priority: string;
+  assigned_to_ids: string[];
+  attachments?: File[];
+}
+
+export interface UpdateTicketResponse {
+  data: Ticket & {
+    description: string;
+    resolved_at: string | null;
+    closed_at: string | null;
+    closed_by: any | null;
+    metadata: Record<string, any>;
+    comments: any[];
+    attachments: any[];
+  };
+}
+
 export interface TicketComment {
   id: number;
   ticket: number;
@@ -424,6 +445,17 @@ export interface CreateCommentRequest {
 
 export interface CreateCommentResponse {
   data: TicketComment;
+}
+
+export interface CloseTicketRequest {
+  closing_comment: string;
+}
+
+export interface CloseTicketResponse {
+  data: {
+    id: number;
+    status: string;
+  };
 }
 
 // Types for Notifications API
@@ -844,7 +876,7 @@ class ApiService {
 
   // Authentication methods
   async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const loginEndpoint = import.meta.env.VITE_LOGIN_ENDPOINT ?? 'accounts/auth/login/';
+    const loginEndpoint = 'accounts/auth/login/';
     const url = `${this.baseURL}${loginEndpoint}`;
     
     const response = await fetch(url, {
@@ -994,10 +1026,75 @@ class ApiService {
     });
   }
 
+  async updateTicket(ticketId: number, ticketData: UpdateTicketRequest): Promise<UpdateTicketResponse> {
+    const url = `${this.baseURL}crm/tickets/${ticketId}/`;
+    
+    // Check if there are attachments to upload
+    const hasAttachments = ticketData.attachments && ticketData.attachments.length > 0;
+    
+    if (hasAttachments && ticketData.attachments) {
+      // Use FormData for file uploads
+      const formData = new FormData();
+      formData.append('title', ticketData.title);
+      formData.append('description', ticketData.description);
+      formData.append('category', ticketData.category);
+      formData.append('priority', ticketData.priority);
+      
+      // Append assigned user IDs
+      ticketData.assigned_to_ids.forEach((userId) => {
+        formData.append('assigned_to_ids', userId);
+      });
+      
+      // Append attachments
+      ticketData.attachments.forEach((file) => {
+        formData.append('attachments', file);
+      });
+
+      const headers: HeadersInit & { Authorization?: string } = {};
+      if (this.accessToken) {
+        headers['Authorization'] = `Bearer ${this.accessToken}`;
+      }
+
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers,
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          errorData.message || `HTTP error! status: ${response.status}`,
+          response.status,
+          errorData.error || 'Request failed',
+          errorData.violations,
+          errorData.warnings,
+          errorData.details || errorData
+        );
+      }
+
+      return response.json();
+    } else {
+      // Use JSON for requests without attachments
+      const { attachments, ...jsonData } = ticketData;
+      return this.makeRequest<UpdateTicketResponse>(`crm/tickets/${ticketId}/`, {
+        method: 'PUT',
+        body: JSON.stringify(jsonData),
+      });
+    }
+  }
+
   async createTicketComment(commentData: CreateCommentRequest): Promise<CreateCommentResponse> {
     return this.makeRequest<CreateCommentResponse>('crm/tickets/add-comment/', {
       method: 'POST',
       body: JSON.stringify(commentData),
+    });
+  }
+
+  async closeTicket(ticketId: number, closeData: CloseTicketRequest): Promise<CloseTicketResponse> {
+    return this.makeRequest<CloseTicketResponse>(`crm/tickets/${ticketId}/close/`, {
+      method: 'POST',
+      body: JSON.stringify(closeData),
     });
   }
 
