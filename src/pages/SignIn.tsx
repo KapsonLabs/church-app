@@ -192,7 +192,7 @@ const SignIn = () => {
 
             {/* Footer */}
             <div className="mt-6 text-center text-sm text-muted-foreground">
-              <p>© 2024 CRM System. All rights reserved.</p>
+              <p>© 2025 Resolver 1ne. All rights reserved.</p>
             </div>
           </div>
         </div>

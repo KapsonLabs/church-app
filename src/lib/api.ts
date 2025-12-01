@@ -1,6 +1,6 @@
 // API configuration and service functions
-// const API_BASE_URL = 'http://localhost:8000/api/';
-const API_BASE_URL = 'https://api.resolver.iolabz.ug/api/'
+const API_BASE_URL = 'http://localhost:8000/api/';
+// const API_BASE_URL = 'https://api.resolver.iolabz.ug/api/'
 // export const MEDIA_URL = 'http://localhost:8000';
 
 // Custom error class to preserve backend error structure
