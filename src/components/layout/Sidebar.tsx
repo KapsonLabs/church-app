@@ -6,7 +6,11 @@ import {
   LogOut,
   TrendingUp,
   CheckCircle2,
-  Briefcase
+  Briefcase,
+  FileText,
+  BookOpen,
+  Shield,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,12 +26,17 @@ export function Sidebar() {
   
   const canAccessSettings = canViewKPIs; // Settings only for supervisor and manager
 
-  const mainItems = [
+  // CRM Category
+  const crmItems = [
     {
       name: 'Tickets',
       href: '/crm',
       icon: HelpCircle,
     },
+  ];
+
+  // KPIs Category
+  const kpiItems = [
     {
       name: 'KPI Portfolio',
       href: '/kpi-portfolio',
@@ -43,14 +52,38 @@ export function Sidebar() {
       href: '/approvals',
       icon: CheckCircle2,
     }] : []),
+  ];
+
+  // Info Center Category
+  const infoCenterItems = [
+    {
+      name: 'FAQs',
+      href: '/info-center/faqs',
+      icon: FileText,
+    },
+    {
+      name: 'SOPs',
+      href: '/info-center/sops',
+      icon: BookOpen,
+    },
+    {
+      name: 'Policies',
+      href: '/info-center/policies',
+      icon: Shield,
+    },
+    {
+      name: 'Trainings',
+      href: '/info-center/trainings',
+      icon: GraduationCap,
+    },
+  ];
+
+  const bottomItems = [
     ...(canAccessSettings ? [{
       name: 'Settings',
       href: '/settings',
       icon: Settings,
     }] : []),
-  ];
-
-  const bottomItems = [
     {
       name: 'Profile',
       href: '/profile',
@@ -76,7 +109,8 @@ export function Sidebar() {
                      (item.href === '/crm' && router.state.location.pathname.startsWith('/crm')) ||
                      (item.href === '/kpis' && router.state.location.pathname.startsWith('/kpis')) ||
                      (item.href === '/approvals' && router.state.location.pathname.startsWith('/approvals')) ||
-                     (item.href === '/kpi-portfolio' && router.state.location.pathname.startsWith('/kpi-portfolio'));
+                     (item.href === '/kpi-portfolio' && router.state.location.pathname.startsWith('/kpi-portfolio')) ||
+                     (item.href.startsWith('/info-center') && router.state.location.pathname.startsWith(item.href));
     
     // Special handling for logout
     if (item.name === 'Log out') {
@@ -110,6 +144,7 @@ export function Sidebar() {
     );
   };
 
+
   return (
     <div className="w-full h-full bg-sidebar text-sidebar-foreground flex flex-col overflow-hidden">
       {/* Main Navigation - Scrollable */}
@@ -119,11 +154,33 @@ export function Sidebar() {
           <div className="mb-4 md:mb-6">
             <span className="text-lg md:text-xl font-bold text-sidebar-foreground">Resolver 1ne</span>
           </div>
+          
+          {/* CRM Section */}
           <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-2 md:mb-3">
-            MENU
+            CRM
+          </h3>
+          <nav className="space-y-0.5 md:space-y-1 mb-4 md:mb-6">
+            {crmItems.map((item) => (
+              <NavItem key={item.name} item={item} />
+            ))}
+          </nav>
+
+          {/* KPIs Section */}
+          <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-2 md:mb-3">
+            KPIs
+          </h3>
+          <nav className="space-y-0.5 md:space-y-1 mb-4 md:mb-6">
+            {kpiItems.map((item) => (
+              <NavItem key={item.name} item={item} />
+            ))}
+          </nav>
+
+          {/* Info Center Section */}
+          <h3 className="text-xs font-semibold text-sidebar-foreground/70 uppercase tracking-wider mb-2 md:mb-3">
+            INFO CENTER
           </h3>
           <nav className="space-y-0.5 md:space-y-1">
-            {mainItems.map((item) => (
+            {infoCenterItems.map((item) => (
               <NavItem key={item.name} item={item} />
             ))}
           </nav>

@@ -766,6 +766,198 @@ export interface CreateKPIReportResponse {
   data: KPIReport;
 }
 
+// Types for Info Center - FAQs
+export interface FAQCategory {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FAQTag {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  category: FAQCategory;
+  tags: FAQTag[];
+  is_published: boolean;
+  view_count: number;
+  helpful_count: number;
+  not_helpful_count: number;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+}
+
+export interface FAQsResponse {
+  status: number;
+  data: FAQ[];
+}
+
+export interface CreateFAQRequest {
+  question: string;
+  answer: string;
+  category_id: string;
+  tag_ids: string[];
+}
+
+export interface CreateFAQResponse {
+  status: number;
+  data: FAQ;
+}
+
+// Types for Info Center - SOPs
+export interface SOPCategory {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SOPTag {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface SOP {
+  id: string;
+  title: string;
+  content: string;
+  version: string;
+  category: SOPCategory;
+  tags: SOPTag[];
+  status: string;
+  status_display: string;
+  is_published: boolean;
+  view_count: number;
+  created_by: string | null;
+  updated_by: string | null;
+  approved_by: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+  approved_at: string;
+}
+
+export interface SOPsResponse {
+  status: number;
+  data: SOP[];
+}
+
+// Types for Info Center - Policies
+export interface PolicyCategory {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PolicyTag {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface Policy {
+  id: string;
+  title: string;
+  content: string;
+  policy_reference: string;
+  category: PolicyCategory;
+  tags: PolicyTag[];
+  is_published: boolean;
+  view_count: number;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+}
+
+export interface PoliciesResponse {
+  status: number;
+  data: Policy[];
+}
+
+// Types for Info Center - Trainings
+export interface TrainingCategory {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TrainingTag {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface Training {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  category: TrainingCategory;
+  tags: TrainingTag[];
+  difficulty_level: string;
+  difficulty_level_display: string;
+  estimated_read_time: number;
+  is_published: boolean;
+  view_count: number;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  published_at: string;
+}
+
+export interface TrainingsResponse {
+  status: number;
+  data: Training[];
+}
+
+export interface CreateTrainingRequest {
+  title: string;
+  content: string;
+  summary: string;
+  category_id: string;
+  tag_ids: string[];
+  difficulty_level: 'beginner' | 'intermediate' | 'advanced';
+  estimated_read_time: number;
+  is_published: boolean;
+}
+
+export interface CreateTrainingResponse {
+  status: number;
+  data: Training;
+}
+
 // API service class
 class ApiService {
   private baseURL: string;
@@ -1174,6 +1366,37 @@ class ApiService {
   async submitKPIReport(reportId: string): Promise<CreateKPIReportResponse> {
     return this.makeRequest<CreateKPIReportResponse>(`kpis/kpi-reports/${reportId}/submit/`, {
       method: 'POST',
+    });
+  }
+
+  // Info Center API methods
+  async fetchFAQs(): Promise<FAQsResponse> {
+    return this.makeRequest<FAQsResponse>('info/faqs/');
+  }
+
+  async createFAQ(faqData: CreateFAQRequest): Promise<CreateFAQResponse> {
+    return this.makeRequest<CreateFAQResponse>('info/faqs/', {
+      method: 'POST',
+      body: JSON.stringify(faqData),
+    });
+  }
+
+  async fetchSOPs(): Promise<SOPsResponse> {
+    return this.makeRequest<SOPsResponse>('info/sops/');
+  }
+
+  async fetchPolicies(): Promise<PoliciesResponse> {
+    return this.makeRequest<PoliciesResponse>('info/policy-explanations/');
+  }
+
+  async fetchTrainings(): Promise<TrainingsResponse> {
+    return this.makeRequest<TrainingsResponse>('info/training-articles/');
+  }
+
+  async createTraining(trainingData: CreateTrainingRequest): Promise<CreateTrainingResponse> {
+    return this.makeRequest<CreateTrainingResponse>('info/training-articles/', {
+      method: 'POST',
+      body: JSON.stringify(trainingData),
     });
   }
 }

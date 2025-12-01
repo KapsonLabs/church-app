@@ -12,6 +12,12 @@ import KPIDetails from './pages/KPIs/KPIDetails';
 import Approvals from './pages/Approvals/Approvals';
 import KPIPortfolio from './pages/KPIPortfolio/KPIPortfolio';
 import KPIReports from './pages/KPIReports/KPIReports';
+import FAQs from './pages/InfoCenter/FAQs';
+import SOPs from './pages/InfoCenter/SOPs';
+import Policies from './pages/InfoCenter/Policies';
+import Trainings from './pages/InfoCenter/Trainings';
+import TrainingDetails from './pages/InfoCenter/TrainingDetails';
+import CreateTraining from './pages/InfoCenter/CreateTraining';
 
 // Root route
 const rootRoute = createRootRoute({
@@ -113,6 +119,43 @@ const editRoleRoute = createRoute({
   component: EditRole,
 });
 
+// Info Center routes
+const faqsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/faqs',
+  component: FAQs,
+});
+
+const sopsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/sops',
+  component: SOPs,
+});
+
+const policiesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/policies',
+  component: Policies,
+});
+
+const trainingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/trainings',
+  component: Trainings,
+});
+
+const trainingDetailsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/trainings/$id',
+  component: TrainingDetails,
+});
+
+const createTrainingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/info-center/trainings/create',
+  component: CreateTraining,
+});
+
 // Redirect root to CRM - handled in component
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -142,6 +185,12 @@ const routeTree = rootRoute.addChildren([
   kpiReportsRoute,
   createRoleRoute,
   editRoleRoute,
+  faqsRoute,
+  sopsRoute,
+  policiesRoute,
+  trainingsRoute,
+  trainingDetailsRoute,
+  createTrainingRoute,
   notFoundRoute,
 ]);
 
