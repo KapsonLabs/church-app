@@ -1,0 +1,4 @@
+import { Link } from '@tanstack/react-router'
+import { Ban, SearchX } from 'lucide-react'
+export function ForbiddenPage() { return <div className="page-grid"><div className="surface grid min-h-80 place-items-center p-8 text-center"><div><Ban className="mx-auto h-10 w-10 text-destructive" /><h1 className="mt-4 text-2xl font-bold">Access denied</h1><p className="mt-2 text-sm text-muted-foreground">You do not have the permission required to view this page.</p><Link className="mt-5 inline-block font-semibold text-primary underline-offset-4 hover:underline" to="/">Return to dashboard</Link></div></div></div> }
+export function NotFoundPage() { return <main className="grid min-h-dvh place-items-center p-4 text-center"><div><SearchX className="mx-auto h-10 w-10 text-muted-foreground" /><h1 className="mt-4 text-2xl font-bold">Page not found</h1><Link className="mt-4 inline-block font-semibold text-primary hover:underline" to="/">Return home</Link></div></main> }

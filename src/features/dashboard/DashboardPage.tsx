@@ -1,0 +1,9 @@
+import { Building2, MapPin, ShieldCheck, Users } from 'lucide-react'
+import { useTenant } from '@/app/TenantContext'
+import { PageHeader, PageSection } from '@/shared/ui/Page'
+
+export function DashboardPage() {
+  const { organization, branches, permissions } = useTenant()
+  const stats = [{ label: 'Branches available', value: branches.length, icon: MapPin }, { label: 'Granted permissions', value: permissions.size, icon: ShieldCheck }]
+  return <div className="page-grid"><PageHeader title={`Welcome to ${organization?.name}`} description="Your tenant-aware workspace is ready. Use the navigation to manage this organization." /><div className="grid gap-4 sm:grid-cols-2">{stats.map(({ label, value, icon: Icon }) => <section key={label} className="surface flex items-center gap-4 p-5"><div className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-accent-foreground"><Icon /></div><div><p className="text-2xl font-bold">{value}</p><p className="text-sm text-muted-foreground">{label}</p></div></section>)}</div><PageSection title="Boilerplate core" description="These capabilities are enabled by default. Optional business modules stay isolated until explicitly enabled."><div className="grid gap-3 sm:grid-cols-3">{[{ icon: Building2, title: 'Tenant context', text: 'Every organization-owned query is keyed and scoped by tenant.' }, { icon: Users, title: 'Memberships', text: 'Users join organizations and branches through explicit memberships.' }, { icon: ShieldCheck, title: 'Permissioning', text: 'Routes, navigation, and actions use backend permission codenames.' }].map(({ icon: Icon, title, text }) => <div key={title} className="rounded-lg bg-muted/60 p-4"><Icon className="mb-3 h-5 w-5 text-primary" /><h3 className="font-semibold">{title}</h3><p className="mt-1 text-sm text-muted-foreground">{text}</p></div>)}</div></PageSection></div>
+}
