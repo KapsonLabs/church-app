@@ -37,6 +37,8 @@ export interface BranchMembership {
   id: UUID; branch_id: UUID; user_id: UUID; user_email: string; is_active: boolean; joined_at: string
 }
 
-export function asList<T>(value: PaginatedResponse<T> | T[]): T[] {
-  return Array.isArray(value) ? value : value.results
+export function asList<T>(value: PaginatedResponse<T> | T[] | null | undefined): T[] {
+  if (Array.isArray(value)) return value
+  if (!value || typeof value !== 'object') return []
+  return Array.isArray(value.results) ? value.results : []
 }

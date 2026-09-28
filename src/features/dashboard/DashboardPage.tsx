@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { CalendarDays, ClipboardCheck, Plus, Users } from 'lucide-react'
@@ -9,13 +10,112 @@ import { PermissionGuard } from '@/shared/ui/PermissionGuard'
 import { errorMessage, friendlyDate } from '@/shared/lib/format'
 
 function MonthlyAttendanceChart({ year, months }: { year: number; months: Array<{ month: number; label: string; present: number; absent: number }> }) {
-  const rawMaximum = Math.max(0, ...months.flatMap((month) => [month.present, month.absent]))
-  const step = rawMaximum <= 4 ? 1 : (() => { const rough = rawMaximum / 4; const magnitude = 10 ** Math.floor(Math.log10(rough)); const normalized = rough / magnitude; return (normalized <= 1 ? 1 : normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude })()
-  const maximum = Math.max(4, Math.ceil(rawMaximum / step) * step)
-  const ticks = Array.from({ length: Math.round(maximum / step) + 1 }, (_, index) => index * step)
-  const plotTop = 24; const plotBottom = 248; const plotHeight = plotBottom - plotTop
-  const y = (value: number) => plotBottom - value / maximum * plotHeight
-  return <PageSection title={`Monthly attendance · ${year}`} description="Finalized Sunday attendance. Present includes late arrivals; absent includes excused absences."><div className="mb-4 flex flex-wrap gap-5 text-sm"><span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-primary" /><strong>Present</strong><span className="text-muted-foreground">Present + Late</span></span><span className="flex items-center gap-2"><span className="h-3 w-3 rounded-sm bg-rose-500" /><strong>Absent</strong><span className="text-muted-foreground">Absent + Excused</span></span></div><div className="overflow-x-auto pb-1"><svg className="h-[21rem] min-w-[60rem] w-full text-foreground" viewBox="0 0 960 320" role="img" aria-label={`Grouped monthly attendance bar chart for ${year}`}><text x="18" y="145" textAnchor="middle" className="fill-muted-foreground text-[11px] font-medium" transform="rotate(-90 18 145)">Children</text>{ticks.map((tick) => { const tickY = y(tick); return <g key={tick}><line x1="52" x2="944" y1={tickY} y2={tickY} className="stroke-border" strokeDasharray={tick === 0 ? undefined : '4 4'} /><text x="44" y={tickY + 4} textAnchor="end" className="fill-muted-foreground text-[11px]">{tick}</text></g> })}{months.map((month, index) => { const groupX = 70 + index * 73; const presentY = y(month.present); const absentY = y(month.absent); return <g key={month.month}><rect x={groupX} y={presentY} width="24" height={Math.max(0, plotBottom - presentY)} rx="3" className="fill-primary"><title>{`${month.label}: ${month.present} present or late`}</title></rect><rect x={groupX + 28} y={absentY} width="24" height={Math.max(0, plotBottom - absentY)} rx="3" className="fill-rose-500"><title>{`${month.label}: ${month.absent} absent or excused`}</title></rect><text x={groupX + 12} y={Math.max(plotTop + 10, presentY - 6)} textAnchor="middle" className="fill-foreground text-[11px] font-semibold">{month.present}</text><text x={groupX + 40} y={Math.max(plotTop + 10, absentY - 6)} textAnchor="middle" className="fill-foreground text-[11px] font-semibold">{month.absent}</text><text x={groupX + 26} y="272" textAnchor="middle" className="fill-foreground text-[12px] font-medium">{month.label.slice(0, 3)}</text></g> })}<text x="498" y="304" textAnchor="middle" className="fill-muted-foreground text-[11px]">Month</text></svg></div></PageSection>
+  const [activeBar, setActiveBar] = useState<{
+    month: string
+    category: string
+    value: number
+    x: number
+    y: number
+  } | null>(null)
+  const ticks = [0, 25, 50, 75, 100]
+  const plotTop = 24
+  const plotBottom = 252
+  const plotHeight = plotBottom - plotTop
+  const y = (value: number) => plotBottom - (value / 100) * plotHeight
+  const formatPercentage = (value: number) => `${Number.isInteger(value) ? value : value.toFixed(1)}%`
+
+  return (
+    <PageSection
+      title={`Monthly attendance · ${year}`}
+      description="Finalized Sunday attendance as a percentage. Present includes late arrivals; absent includes excused absences."
+    >
+      <div className="mb-4 flex flex-wrap gap-5 text-sm">
+        <span className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded-sm bg-primary" />
+          <strong>Present</strong>
+          <span className="text-muted-foreground">Present + Late</span>
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="h-3 w-3 rounded-sm bg-rose-500" />
+          <strong>Absent</strong>
+          <span className="text-muted-foreground">Absent + Excused</span>
+        </span>
+      </div>
+      <div className="overflow-x-auto pb-1">
+        <svg
+          className="h-[22rem] min-w-[62rem] w-full text-foreground"
+          viewBox="0 0 1000 330"
+          role="img"
+          aria-label={`Grouped monthly attendance percentage bar chart for ${year}`}
+        >
+          <text x="18" y="145" textAnchor="middle" className="fill-muted-foreground text-[11px] font-medium" transform="rotate(-90 18 145)">
+            Attendance (%)
+          </text>
+          {ticks.map((tick) => {
+            const tickY = y(tick)
+            return (
+              <g key={tick}>
+                <line x1="58" x2="982" y1={tickY} y2={tickY} className="stroke-border" strokeDasharray={tick === 0 ? undefined : '4 4'} />
+                <text x="49" y={tickY + 4} textAnchor="end" className="fill-muted-foreground text-[11px]">
+                  {tick}%
+                </text>
+              </g>
+            )
+          })}
+          {months.map((month, index) => {
+            const groupX = 68 + index * 76
+            const presentY = y(month.present)
+            const absentY = y(month.absent)
+            const bars = [
+              { category: 'Present', value: month.present, x: groupX, y: presentY, className: 'fill-primary' },
+              { category: 'Absent', value: month.absent, x: groupX + 35, y: absentY, className: 'fill-rose-500' },
+            ]
+            return (
+              <g key={month.month}>
+                {bars.map((bar) => (
+                  <g key={bar.category}>
+                    <rect
+                      x={bar.x}
+                      y={bar.y}
+                      width="31"
+                      height={Math.max(2, plotBottom - bar.y)}
+                      rx="4"
+                      tabIndex={0}
+                      role="img"
+                      aria-label={`${month.label} ${bar.category}: ${formatPercentage(bar.value)}`}
+                      className={`${bar.className} cursor-help transition-opacity hover:opacity-80 focus:opacity-80 focus:outline-none focus:stroke-foreground focus:stroke-2`}
+                      onMouseEnter={() => setActiveBar({ month: month.label, category: bar.category, value: bar.value, x: bar.x + 15.5, y: bar.y })}
+                      onMouseLeave={() => setActiveBar(null)}
+                      onFocus={() => setActiveBar({ month: month.label, category: bar.category, value: bar.value, x: bar.x + 15.5, y: bar.y })}
+                      onBlur={() => setActiveBar(null)}
+                    />
+                    <text x={bar.x + 15.5} y={Math.max(plotTop + 10, bar.y - 7)} textAnchor="middle" className="pointer-events-none fill-foreground text-[10px] font-semibold">
+                      {formatPercentage(bar.value)}
+                    </text>
+                  </g>
+                ))}
+                <text x={groupX + 33} y="277" textAnchor="middle" className="fill-foreground text-[12px] font-medium">
+                  {month.label.slice(0, 3)}
+                </text>
+              </g>
+            )
+          })}
+          <text x="520" y="311" textAnchor="middle" className="fill-muted-foreground text-[11px]">Month</text>
+          {activeBar ? (
+            <g pointerEvents="none" transform={`translate(${Math.min(862, Math.max(58, activeBar.x - 65))} ${Math.max(8, activeBar.y - 54)})`}>
+              <rect width="130" height="43" rx="6" className="fill-foreground drop-shadow-md" />
+              <text x="65" y="17" textAnchor="middle" className="fill-background text-[10px] font-medium">
+                {activeBar.month} · {activeBar.category}
+              </text>
+              <text x="65" y="34" textAnchor="middle" className="fill-background text-[14px] font-bold">
+                {formatPercentage(activeBar.value)}
+              </text>
+            </g>
+          ) : null}
+        </svg>
+      </div>
+    </PageSection>
+  )
 }
 
 export function DashboardPage() {
