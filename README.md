@@ -1,4 +1,4 @@
-# React Tenant Boilerplate
+# KingdomKids
 
 A neutral React 18/TypeScript administration shell for the companion Django API. The default build includes authentication, session-only tenant selection, organizations, branches, members, roles, permissions, profile management, responsive navigation, and accessible data views.
 
@@ -23,7 +23,7 @@ The default `.env.example` points to `http://localhost:8000/api/v1/`. Django mus
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `VITE_API_BASE_URL` | Versioned Django API root, including trailing slash | `http://localhost:8000/api/v1/` |
-| `VITE_APP_NAME` | Neutral shell/product label | `Tenant Console` |
+| `VITE_APP_NAME` | Configurable product label | `KingdomKids` |
 
 Do not place secrets in Vite variables: every `VITE_` value is compiled into the browser bundle.
 

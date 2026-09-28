@@ -5,9 +5,9 @@ const user = { id: 'user-1', email: 'person@example.com', first_name: 'Example',
 describe('authApi', () => {
   beforeEach(() => { clearTokens(); vi.restoreAllMocks() })
   it('logs in with email and persists only the refresh token', async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { access: 'access', refresh: 'refresh', user } }), { status: 200 }))
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ data: { access: 'access', refresh: 'refresh', user, branches: [] } }), { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
-    await expect(authApi.login({ email: user.email, password: 'secret' })).resolves.toEqual(user)
+    await expect(authApi.login({ email: user.email, password: 'secret' })).resolves.toEqual({ user, branches: [] })
     expect(getRefreshToken()).toBe('refresh')
     expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toEqual({ email: user.email, password: 'secret' })
   })

@@ -8,6 +8,11 @@ export interface User {
   id: UUID; email: string; first_name: string; last_name: string; phone_number: string
   date_of_birth?: string | null; is_active: boolean; created_at: string; updated_at: string
 }
+export interface TenantUser {
+  id: UUID; email: string; first_name: string; last_name: string; phone_number: string
+  role_id: UUID | null; role_name: string | null; membership_is_active: boolean
+  branch_ids: UUID[]; created_at: string; updated_at: string
+}
 export interface Organization {
   id: UUID; name: string; slug: string; description: string; email: string; phone_number: string
   website: string; physical_address: string; logo?: string | null; is_active: boolean; branch_count: number
@@ -17,6 +22,7 @@ export interface Branch {
   id: UUID; organization_id: UUID; name: string; code: string; email: string; phone_number: string
   address: string; city: string; country: string; is_active: boolean; created_at: string; updated_at: string
 }
+export interface SessionBranch extends Branch { organization: Organization }
 export interface Resource { id: UUID; name: string; code: string; description: string; is_active: boolean }
 export interface Permission { id: UUID; resource: Resource; action: string; codename: string; description: string; is_active: boolean }
 export interface Role {
